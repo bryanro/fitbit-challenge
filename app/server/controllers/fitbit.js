@@ -127,10 +127,10 @@ FitbitController.authRedirect = function (req, res) {
     );
 }
 
-FitbitController.getUserInfo = function (req, callback) {
+FitbitController.getUserInfo = function (username, callback) {
     var oauthToken = req.session.oauthAccessToken;
     var oauthTokenSecret = req.session.oauthAccessTokenSecret;
-    FitbitController.oAuth.get('https://api.fitbit.com/1/user/-/profile.json', oauthToken, oauthTokenSecret, callback);
+    FitbitController.oAuth.get('https://api.fitbit.com/1/user/' + username + '/profile.json', oauthToken, oauthTokenSecret, callback);
 }
 
 FitbitController.saveActivitySeries = function (user, callback) {

@@ -104,7 +104,7 @@ FitbitController.authRedirect = function (req, res) {
             } else {
                 FitbitController.getUserInfo(req, function (err, userDataJson) {
                     if (err) {
-                        logger.error('Error getting user info: ' + err.message, 'authRedirect');
+                        logger.error('Error getting user info: ' + JSON.stringify(err), 'authRedirect');
                         res.send(500, err.message);
                     }
                     else {

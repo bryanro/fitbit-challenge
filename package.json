@@ -1,0 +1,33 @@
+﻿{
+	"name": "boilerplate",
+	"version": "0.1.0",
+	"description": "NodeJS boilerplate for RESTful web services with optional front-end",
+	"author": {
+		"name": "Your Name Here",
+		"email": "yourname@yoursite.com"
+	},
+	"website":{
+		"url": "http://yourwebsite.com"
+	},
+	"repository": {
+		"type": "git",
+		"url": "http://yourrepository.com/projectname"
+	},
+	"private": false,
+	"dependencies": {
+		"express":			"latest",
+		"mongodb":			"latest",
+		"fs.extra":			"latest",
+		"moment":			"latest",
+		"mongoose":			"latest",
+		"underscore":		"latest",
+		"node-gyp":			"latest",
+		"connect-mongo":	"latest",
+        "oauth":            "latest",
+        "jquery":           "latest"
+	},
+	"engines": {
+		"node":			"latest",
+		"npm":			"latest"
+	}
+}

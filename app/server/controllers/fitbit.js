@@ -82,30 +82,30 @@ FitbitController.authenticate = function (req, res) {
             logger.debug('Successfully retrieved oauthToken (' + oauthToken + ') and oauthTokenSecret (' + oauthTokenSecret + ')', 'fitbit.authenticate');
             req.session.oauthRequestToken = oauthToken;
             req.session.oauthRequestTokenSecret = oauthTokenSecret;
-            logger.debug('req.session.oauthRequestToken: ' + req.session.oauthRequestToken);
-            logger.debug('req.session.oauthRequestTokenSecret: ' + req.session.oauthRequestTokenSecret);
-            res.redirect("http://www.fitbit.com/oauth/authorize?oauth_token=" + req.session.oauthRequestToken);
+            res.redirect("http://www.fitbit.com/oauth/authorize?oauth_token=" + req.session.oauthRequestToken, 'authenticate');
         }
     });
 }
 
 FitbitController.authRedirect = function (req, res) {
+    logger.debug('Entering authRedirect', 'authRedirect')
     logger.debug('req.session.oauthRequestToken: ' + req.session.oauthRequestToken);
     logger.debug('req.session.oauthRequestTokenSecret: ' + req.session.oauthRequestTokenSecret);
 
-    logger.debug('req.query.oauth_verifier: ' + req.query.oauth_verifier, 'fitbit authRedirect');
+    logger.debug('req.query.oauth_verifier: ' + req.query.oauth_verifier, 'authRedirect');
     FitbitController.oAuth.getOAuthAccessToken(
         req.session.oauthRequestToken,
         req.session.oauthRequestTokenSecret,
         req.query.oauth_verifier,
         function (error, oauthAccessToken, oauthAccessTokenSecret, results) {
             if (error) {
-                res.send('Error getting OAuth access token: ' + error + '[' + oauthAccessToken + ']' + '[' + oauthAccessTokenSecret + ']' + '[' + results + ']', 500);
+                logger.error('Error getting OAuth access token: ' + JSON.stringify(error), 'authRedirect');
+                res.send('Error getting OAuth access token: ' + JSON.stringify(error), 500);
             } else {
-                FitbitController.getUserInfo(req, function (err, userDataJson) {
+                FitbitController.getUserInfo(results.encoded_user_id, oauthAccessToken, oauthAccessTokenSecret, function (err, userDataJson) {
                     if (err) {
                         logger.error('Error getting user info: ' + JSON.stringify(err), 'authRedirect');
-                        res.send(500, err.message);
+                        res.send(500, JSON.stringify(err));
                     }
                     else {
                         var userData = JSON.parse(userDataJson);
@@ -127,9 +127,7 @@ FitbitController.authRedirect = function (req, res) {
     );
 }
 
-FitbitController.getUserInfo = function (username, callback) {
-    var oauthToken = req.session.oauthAccessToken;
-    var oauthTokenSecret = req.session.oauthAccessTokenSecret;
+FitbitController.getUserInfo = function (username, oauthToken, oauthTokenSecret, callback) {
     FitbitController.oAuth.get('https://api.fitbit.com/1/user/' + username + '/profile.json', oauthToken, oauthTokenSecret, callback);
 }
 

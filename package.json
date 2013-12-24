@@ -24,7 +24,8 @@
 		"node-gyp":			"latest",
 		"connect-mongo":	"latest",
         "oauth":            "latest",
-        "jquery":           "latest"
+        "jquery":           "latest",
+        "forever":          "latest"
 	},
 	"engines": {
 		"node":			"latest",

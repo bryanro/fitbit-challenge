@@ -146,7 +146,7 @@ var MyApp = function() {
 	 */
     self.start = function() {
         // Start the app on the specific interface (and port).
-        self.app.listen(self.port, self.ipaddress, function() {
+        self.app.listen(self.port, function() {
             logger.info('Node server started: ' + self.ipaddress + ':' + self.port, 'server.js');
         });
     };

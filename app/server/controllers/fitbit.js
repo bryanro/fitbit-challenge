@@ -113,6 +113,7 @@ FitbitController.authRedirect = function (req, res) {
                         User.createOrUpdateFitbitUser(userData, function (err, user) {
                             if (err) {
                                 logger.error('Error creating or updating fitbit user: ' + err, 'authRedirect');
+                                res.send(500, err);
                             }
                             else {
                                 req.session.user = user;

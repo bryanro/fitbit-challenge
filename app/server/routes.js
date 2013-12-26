@@ -48,23 +48,11 @@ module.exports = function (app) {
 
     // User
     var user = require('./controllers/user');
-    app.get('/users', function (req,res) {
+    /*app.get('/users', function (req,res) {
         user.getAllFitbitUsers(function (err, users) {
             res.send(200, 'Users: ' + JSON.stringify(users, null, '\t'));
         })
-    });
-
-	/*// Login
-    var login = require('./controllers/login');
-    app.post('/login', login.login);
-	
-	// User
-    var user = require('./controllers/user');
-    //app.post('/user', user.createNewUser);
-	/*app.get('/user', user.getUserInfoFromSession);
-	app.post('/user', user.createNewUser);
-	app.put('/user/:id', user.updateUser);
-	app.get('/users', user.getAllUsers);*/
+    });*/
 
     logger.info('Finished setting up routes', 'routes.js');
 }

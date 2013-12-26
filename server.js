@@ -149,6 +149,8 @@ var MyApp = function() {
         self.app.listen(self.port, function() {
             logger.info('Node server started: ' + self.ipaddress + ':' + self.port, 'server.js');
         });
+
+        var scheduler = require('./app/server/controllers/scheduler');
     };
 };
 

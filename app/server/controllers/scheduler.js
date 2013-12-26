@@ -9,7 +9,7 @@ var Scheduler = {};
 
 Scheduler.setupSchedule = function () {
     var cronJob = require('cron').CronJob;
-    var cronDateTime = '0 0 5 * * *'; // occur every day at 5am by default
+    var cronDateTime = '0 0 * * * *'; // occur every hour by default
 
     // get cronDateTime from config
     Config.getConfigValue('cronDateTime', function (err, configCronDateTime) {
@@ -39,7 +39,7 @@ Scheduler.updateActivityData = function () {
         }
         else {
             logger.debug('Iterating through ' + users.length + ' users', 'updateActivityData');
-            _.each(users, function (user, userIterator) {
+            _.each(users, function (user) {
                 FitbitController.saveActivitySeries(user, function (err) {
                     if (err) {
                         logger.error('Error saving activity series: ' + err, 'updateActivityData', user.username);
@@ -53,6 +53,8 @@ Scheduler.updateActivityData = function () {
     });
 
 }
+
+Scheduler.setupSchedule();
 
 module.exports = Scheduler;
 

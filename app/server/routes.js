@@ -35,11 +35,23 @@ module.exports = function (app) {
     app.get('/activity-logs', activityLog.getAllActivityLogs);
     app.get('/activity-logs/:id', activityLog.getActivityLog);
 
+    // Team
+    var team = require('./controllers/team');
+    app.get('/teams', team.getTeams);
+
     // Scheduler
     var scheduler = require('./controllers/scheduler');
     app.get('/manual/update', function (req, res) {
         scheduler.updateActivityData();
         res.send(200);
+    });
+
+    // User
+    var user = require('./controllers/user');
+    app.get('/users', function (req,res) {
+        user.getAllFitbitUsers(function (err, users) {
+            res.send(200, 'Users: ' + JSON.stringify(users, null, '\t'));
+        })
     });
 
 	/*// Login

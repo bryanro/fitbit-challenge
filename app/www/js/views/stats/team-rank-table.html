@@ -1,0 +1,14 @@
+<table id="team-rank-table" class="table table-condensed table-bordered table-striped">
+    <thead>
+        <th>Team Name</th>
+        <th>Total Steps</th>
+    </thead>
+    <tbody>
+        <% _.each(data, function (dataItem) { %>
+        <tr>
+            <td><%= dataItem.label %></td>
+            <td><%= (dataItem.data[0][1]).toLocaleString() %></td>
+        </tr>
+        <% }); %>
+    </tbody>
+</table>

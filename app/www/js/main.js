@@ -10,7 +10,9 @@
         util: 'util',
         flot: 'lib/flot/jquery.flot',
         flottime: 'lib/flot/jquery.flot.time',
-        flotlabels: 'lib/flot/jquery.flot.valuelabels'
+        flottooltip: 'lib/flot/jquery.flot.tooltip',
+        flotorderbars: 'lib/flot/jquery.flot.orderbars',
+        tablesorter: 'lib/tablesorter/jquery.tablesorter.min'
     },
     shim: {
         underscore: {
@@ -29,9 +31,12 @@
         flottime: {
             deps: ['flot']
         },
-        flotlabels: {
+        flottooltip: {
             deps: ['flot']
-        }
+        },
+        flotorderbars: {
+            deps: ['flot']
+        },
     }
 });
 

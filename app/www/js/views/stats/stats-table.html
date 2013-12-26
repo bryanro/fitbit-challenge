@@ -1,0 +1,18 @@
+<table id="daily-stats-table" class="table table-condensed table-bordered table-striped">
+    <thead>
+    <th>Name</th>
+    <% _.each(dates, function (date) { %>
+        <th><%= moment.utc(date).format('MM/DD') %></th>
+    <% }); %>
+    </thead>
+    <tbody>
+    <% activityLogCollection.each(function (activityLogItem) { %>
+        <tr>
+            <td><%= activityLogItem.get('user').displayName %></td>
+            <% _.each(activityLogItem.get('activityData'), function (activityItem) { %>
+                <td><%= activityItem.steps.toLocaleString() %></td>
+            <% }); %>
+        </tr>
+    <% }); %>
+    </tbody>
+</table>

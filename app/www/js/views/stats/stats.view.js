@@ -2,12 +2,18 @@ define([
     'jquery',
     'underscore',
     'backbone',
+    'moment',
     'flot',
     'flottime',
-    'flotlabels',
+    'flottooltip',
+    'flotorderbars',
+    'tablesorter',
     'collections/activitylogs.collection',
-    'text!./stats.html'
-], function ($, _, Backbone, Flot, FlotTime, FlotLables, ActivityLogCollection, StatsTemplate) {
+    'collections/teams.collection',
+    'text!./stats.html',
+    'text!./stats-table.html',
+    'text!./team-rank-table.html'
+], function ($, _, Backbone, moment, Flot, FlotTime, FlotTooltip, FlotOrderBars, TableSorter, ActivityLogCollection, TeamCollection, StatsTemplate, StatsTableTemplate, TeamRankTableTemplate) {
 
     var UserView = Backbone.View.extend({
 
@@ -16,24 +22,63 @@ define([
         initialize: function (options) {
             var that = this;
             this.activityLogCollection = new ActivityLogCollection();
-            this.activityLogCollection.fetch({
+            this.teamCollection = new TeamCollection();
+            this.teamCollection.fetch({
                 success: function (model, result, options) {
-                    that.createIndividualStatsGraph();
-                    that.createTeamRankingGraph();
+                    that.activityLogCollection.fetch({
+                        success: function (model, result, options) {
+                            that.createIndividualStatsGraph();
+                            that.createTeamRankingGraph();
+                            that.createTeamProgressionGraph();
+                            that.createIndividualStatsTable();
+                        },
+                        error: function (model, xhr, options) {
+                        }
+                    });
                 },
-                error: function (model, xhr, options) {
+                error: function (model, result, options) {
+
                 }
             });
         },
 
         render: function () {
+            var that = this;
             this.statsTemplate= _.template(StatsTemplate);
+
             this.$el.html(this.statsTemplate({
 
             }));
         },
 
         events: {
+        },
+
+        createIndividualStatsTable: function () {
+            var that = this;
+            var dates = [];
+            if (this.activityLogCollection.models && this.activityLogCollection.models.length > 0) {
+                var activityData = this.activityLogCollection.at(0).get('activityData');
+                _.each(activityData, function (activityDataItem) {
+                    dates.push(new Date(activityDataItem.date));
+                });
+            }
+
+            var $dailyStats = $('#daily-stats');
+            this.statsTableTemplate = _.template(StatsTableTemplate);
+            $dailyStats.html(this.statsTableTemplate({
+                activityLogCollection: that.activityLogCollection,
+                dates: dates
+            }));
+        },
+
+        createTeamStatsTable: function (data) {
+            var that = this;
+            var $teamStats = $('#team-rank');
+            this.teamRankTableTemplate = _.template(TeamRankTableTemplate);
+            $teamStats.html(this.teamRankTableTemplate({
+                data: data
+            }));
         },
 
         createTeamRankingGraph: function () {
@@ -43,30 +88,15 @@ define([
             // team 1: bryan, mehalso, cooper
             // team 2: ronemous, rick, shanavia
             // team 3: andres, gino, alan
-            var teams = [
-                {
-                    teamNum: 1,
-                    teamMembers: ['28HN4N', '28CDDV', '28DV9Z']
-                },
-                {
-                    teamNum: 2,
-                    teamMembers: ['28NRB3', '28HFJZ', '27Y8LZ']
-                },
-                {
-                    teamNum: 3,
-                    teamMembers: ['28CPPB', '28HRL8', '28BSSF']
-                }
-            ];
+            var teams = this.teamCollection;
 
-            _.each(teams, function (team) {
-                var teamNum = team.teamNum;
+            _.each(teams.models, function (team) {
                 var teamTotalStepCount = 0;
-                _.each(team.teamMembers, function (teamMemberUsername) {
+                _.each(team.get('teamMembers'), function (teamMemberUsername) {
                     var teamMember = that.activityLogCollection.filter(function (activityLogItem){
                         return activityLogItem.get('user').username == teamMemberUsername;
                     });
                     if (teamMember.length == 1) {
-                        console.log('Found team member: ' + teamMemberUsername);
                         teamTotalStepCount += _.reduce(teamMember[0].get('activityData'), function (memo, activityItem) {
                             return memo + activityItem.steps;
                         }, 0);
@@ -75,36 +105,120 @@ define([
                         console.log('Could not find team member: ' + teamMemberUsername);
                     }
                 });
-                data.push([teamNum, teamTotalStepCount]);
+                data.push({label: team.get('teamName'), data: [[1, teamTotalStepCount]], bars: { order: team.get('teamNum') }});
             });
-            console.log('DATA: ' + JSON.stringify(data));
-            $.plot($("#team-ranking"), [ data ],
+            //console.log('Team ranking data for graphing: ' + JSON.stringify(data));
+            $.plot($("#team-ranking"), data,
                 {
-                    bars: {
-                        show: true
+                    series: {
+                        bars: {
+                            show: true
+                        }
                     },
                     xaxis: {
-                        minTickSize: 1
+                        autoscaleMargin: 0.1,
+                        show: false
                     },
                     yaxis: {
                     },
                     grid: {
                         hoverable: true
+                    },
+                    tooltip: true,
+                    tooltipOpts: {
+                        content: "%s: %y steps"
                     }
                 }
             );
-            $("#team-ranking").bind("plothover", function (event, pos, item) {
-                // axis coordinates for other axes, if present, are in pos.x2, pos.x3, ...
-                // if you need global screen coordinates, they are pos.pageX, pos.pageY
 
-                if (item) {
-                    highlight(item.series, item.datapoint);
-                    console.log("You highlighted a point!");
-                }
-            });
+            this.createTeamStatsTable(data);
         },
 
-        createTeamStatsGraph: function () {
+        createTeamProgressionGraph: function () {
+            var that = this;
+            var data = [];
+
+            var teams = this.teamCollection;
+
+            var activityLogsAgg = [];
+            // iterate through the activity log collection and progressively add the data into the activityLogAgg collection
+            /* example (note: different structure, just illustrating the point:
+                original:   [{ day 1: 9000 steps },  { day 2: 8000 steps}, { day 3: 10000 steps }]
+                output:     [{ day 1: 9000 steps },  { day 2: 17000 steps}, { day 3: 27000 steps }]
+             */
+            that.activityLogCollection.each(function (activityLogItem) {
+                var activityData = [];
+                var activityLogItemAgg = { username: activityLogItem.get('user').username, activityData: []};
+                _.reduce(activityLogItem.get('activityData'), function (memo, activityItem) {
+                    activityLogItemAgg.activityData.push({ date: activityItem.date, dateGetTime: (new Date(activityItem.date)).getTime(), steps: memo + activityItem.steps });
+                    //activityData.push([(new Date(activityItem.date)).getTime(), memo + activityItem.steps]);
+                    return memo + activityItem.steps;
+                }, 0);
+                activityLogsAgg.push(activityLogItemAgg);
+                // TODO: CHANGE TO DISPLAYNAME IF NOT USING IN LATER ARRAY TO CONSOLIDATE TO TEAM
+                //data.push({label: activityLogItem.get('user').username, data: activityData})
+            });
+
+            // create a new teamData array that consolidates all of the progressive data for each person on the team
+            var teamData = [];
+            _.each(teams.models, function (team) {
+                var teamMembersAgg = activityLogsAgg.filter(function (dataItem){
+                    return _.contains(team.get('teamMembers'), dataItem.username);
+                });
+                if (teamMembersAgg.length > 0) {
+                    var teamActivityData = [];
+                    var startDate = new Date(teamMembersAgg[0].activityData[0].date);
+                    var today = new Date();
+                    for (var dateIterator = startDate; dateIterator <= today; dateIterator.setDate(dateIterator.getDate() + 1)) {
+                        var dateStepCount = 0;
+                        _.each(teamMembersAgg, function (teamMemberData) {
+                            var activityDataForDate = _.findWhere(teamMemberData.activityData, { dateGetTime: dateIterator.getTime()});
+                            if (activityDataForDate && activityDataForDate.steps) {
+                                dateStepCount += activityDataForDate.steps;
+                                //console.log('Adding ' + activityDataForDate.steps + ' to total count, equaling: ' + dateStepCount);
+                            }
+                        });
+                        if (!(dateStepCount === 0 && dateIterator.getDate() > today.getDate() - 1)) {
+                            teamActivityData.push({date: dateIterator, dateTime: dateIterator.getTime(), steps: dateStepCount});
+                        }
+                    }
+                    teamData.push({ team: team, activityData: teamActivityData })
+                }
+                else {
+                    console.log('No data for members of team: ' + team.get('teamName'));
+                }
+            });
+
+            // convert team data to graph-able data
+            var data = [];
+            _.each(teamData, function (teamDataIterator) {
+                var graphData = [];
+                _.each(teamDataIterator.activityData, function (dataPoint) {
+                    graphData.push([dataPoint.dateTime, dataPoint.steps]);
+                });
+                data.push({ label: teamDataIterator.team.get('teamName'), data: graphData });
+            });
+
+            //console.log('Data to graph for createTeamProgressionGraph: ' + JSON.stringify(data));
+
+            var plotOptions = {
+                xaxis: {
+                    mode: 'time',
+                    timeformat: '%m/%d',
+                    minTickSize: [1, 'day']
+                },
+                yaxis: {
+                    min: 0
+                },
+                grid: {
+                    hoverable: true
+                },
+                tooltip: true,
+                tooltipOpts: {
+                    content: "%s: %y steps"
+                }
+            };
+            $.plot($("#team-stats"), data, plotOptions);
         },
 
         createIndividualStatsGraph: function () {
@@ -115,10 +229,9 @@ define([
                     var itemArray = [(new Date(activityLogItem.date)).getTime(), activityLogItem.steps];
                     itemData.push(itemArray);
                 });
-                console.log(JSON.stringify());
                 data.push({ label: activityLogModel.get('user').displayName, data: itemData});
             });
-            console.log('DATA: ' + JSON.stringify(data));
+            //console.log('Graph data for individual stats: ' + JSON.stringify(data));
             var plotOptions = {
                 xaxis: {
                     mode: 'time',
@@ -128,8 +241,12 @@ define([
                 yaxis: {
                     min: 0
                 },
-                valueLabels: {
-                    show: true
+                grid: {
+                    hoverable: true
+                },
+                tooltip: true,
+                tooltipOpts: {
+                    content: "%s: %y steps"
                 }
             };
             $.plot($("#individual-stats"), data, plotOptions);

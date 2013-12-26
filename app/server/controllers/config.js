@@ -12,7 +12,7 @@ ConfigController.getConfigValue = function (key, callback) {
             callback('Error getting config value for key: ' + key + '.');
         }
         else if (!config) {
-            logger.error('Config for create account pw not found in database', 'getConfigValue');
+            logger.error('Config not found in database: ' + key, 'getConfigValue');
             callback('Error finding config value for key: ' + key + '.');
         }
         else {

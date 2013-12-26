@@ -25,7 +25,9 @@
 		"connect-mongo":	"latest",
         "oauth":            "latest",
         "jquery":           "latest",
-        "forever":          "latest"
+        "forever":          "latest",
+        "cron":				"latest",
+        "time":				"latest"
 	},
 	"engines": {
 		"node":			"latest",

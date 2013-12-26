@@ -139,9 +139,7 @@ FitbitController.saveActivitySeries = function (user, callback) {
         }
         else {
             var activityData = JSON.parse(activityDataJson);
-
-            logger.debug('activityData["activities-log-steps"]: ' + JSON.stringify(activityData, null, '\t'));
-
+            //logger.debug('activityData["activities-log-steps"]: ' + JSON.stringify(activityData, null, '\t'));
             ActivityLog.saveFitbitActivityLogEvents(user, activityData);
         }
     });

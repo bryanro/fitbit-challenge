@@ -222,14 +222,18 @@ define([
         },
 
         createIndividualStatsGraph: function () {
+            var that = this;
             var data = [];
+            var autoColorIterator = 0;
+            var color;
             this.activityLogCollection.each(function (activityLogModel) {
                 var itemData = [];
                 _.each(activityLogModel.get('activityData'), function (activityLogItem) {
                     var itemArray = [(new Date(activityLogItem.date)).getTime(), activityLogItem.steps];
                     itemData.push(itemArray);
                 });
-                data.push({ label: activityLogModel.get('user').displayName, data: itemData});
+                color = activityLogModel.get('user').userGraphColor | autoColorIterator++;
+                data.push({ label: activityLogModel.get('user').displayName, data: itemData, color: color});
             });
             //console.log('Graph data for individual stats: ' + JSON.stringify(data));
             var plotOptions = {

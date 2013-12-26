@@ -54,7 +54,7 @@ ActivityLogController.saveFitbitActivityLogEvents = function (user, fitbitActivi
             var events = [];
             // iterate through each item from the fitbit API
             _.each(fitbitActivityLogs["activities-steps"], function (fitbitActivityDay) {
-                logger.debug('Iteration for date: ' + fitbitActivityDay.dateTime);
+                //logger.debug('Iteration for date: ' + fitbitActivityDay.dateTime);
                 var event = {
                     date: new Date(fitbitActivityDay.dateTime + 'T00:00:00'),
                     steps: fitbitActivityDay.value
@@ -67,7 +67,7 @@ ActivityLogController.saveFitbitActivityLogEvents = function (user, fitbitActivi
 }
 
 ActivityLogController.getAllActivityLogs = function (req, res) {
-    ActivityLogModel.find({}).populate('user', 'username fullName displayName product').exec(function (err, activityLogs) {
+    ActivityLogModel.find({}).populate('user', 'username fullName displayName product userGraphColor').exec(function (err, activityLogs) {
         if (err) {
             logger.error('Error getting activity logs: ' + err, 'getAllActivityLogs');
             res.send(500);

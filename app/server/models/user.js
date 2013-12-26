@@ -8,6 +8,7 @@ var UserSchema = new mongoose.Schema({
     email: { type: String },
     signupDate: { type: Date, default: Date.now },
     product: { type: String, required: true },
+    userGraphColor: { type: String, required: false },
     fitbitOAuthAccessToken: { type: String },
     fitbitOAuthAccessTokenSecret: { type: String }
 });

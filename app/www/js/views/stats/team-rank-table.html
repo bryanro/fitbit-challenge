@@ -2,12 +2,14 @@
     <thead>
         <th>Team Name</th>
         <th>Total Steps</th>
+        <th>Steps Behind Leader</th>
     </thead>
     <tbody>
         <% _.each(data, function (dataItem) { %>
         <tr>
             <td><%= dataItem.label %></td>
             <td><%= (dataItem.data[0][1]).toLocaleString() %></td>
+            <td><%= (leaderStepCount - dataItem.data[0][1]).toLocaleString() %></td>
         </tr>
         <% }); %>
     </tbody>

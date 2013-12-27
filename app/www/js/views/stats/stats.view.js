@@ -70,15 +70,35 @@ define([
                 activityLogCollection: that.activityLogCollection,
                 dates: dates
             }));
+
+            $('#daily-stats-table').tablesorter({
+                sortList: [[that.activityLogCollection.at(0).get('activityData').length,1]],
+                sortInitialOrder: 'desc'
+            });
         },
 
         createTeamStatsTable: function (data) {
             var that = this;
             var $teamStats = $('#team-rank');
+
+            var leaderStepCount = 0;
+            _.each(data, function (dataItem) {
+                var steps = dataItem.data[0][1];
+                if (leaderStepCount < steps) {
+                    leaderStepCount = steps;
+                }
+            });
+
             this.teamRankTableTemplate = _.template(TeamRankTableTemplate);
             $teamStats.html(this.teamRankTableTemplate({
-                data: data
+                data: data,
+                leaderStepCount: leaderStepCount
             }));
+
+            // set table to be a sortable table and sort by second column (number of steps) descending
+            $('#team-rank-table').tablesorter({
+                sortList: [[1,1]]
+            });
         },
 
         createTeamRankingGraph: function () {
@@ -216,6 +236,9 @@ define([
                 tooltip: true,
                 tooltipOpts: {
                     content: "%s: %y steps"
+                },
+                legend: {
+                    position: "nw"
                 }
             };
             $.plot($("#team-stats"), data, plotOptions);
@@ -232,7 +255,7 @@ define([
                     var itemArray = [(new Date(activityLogItem.date)).getTime(), activityLogItem.steps];
                     itemData.push(itemArray);
                 });
-                color = activityLogModel.get('user').userGraphColor | autoColorIterator++;
+                color = activityLogModel.get('user').userGraphColor || autoColorIterator++;
                 data.push({ label: activityLogModel.get('user').displayName, data: itemData, color: color});
             });
             //console.log('Graph data for individual stats: ' + JSON.stringify(data));
@@ -251,6 +274,11 @@ define([
                 tooltip: true,
                 tooltipOpts: {
                     content: "%s: %y steps"
+                },
+                legend: {
+                    position: "nw",
+                    sorted: 'ascending',
+                    container: '#individual-stats-legend'
                 }
             };
             $.plot($("#individual-stats"), data, plotOptions);

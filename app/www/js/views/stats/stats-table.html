@@ -1,8 +1,8 @@
 <table id="daily-stats-table" class="table table-condensed table-bordered table-striped">
     <thead>
-    <th>Name</th>
+    <th>Name<i class="icon-caret-up"></i><i class="icon-caret-down"></i></th>
     <% _.each(dates, function (date) { %>
-        <th><%= moment.utc(date).format('MM/DD') %></th>
+        <th><%= moment.utc(date).format('MM/DD') %> <i class="icon-caret-up"></i><i class="icon-caret-down"></i></th>
     <% }); %>
     </thead>
     <tbody>

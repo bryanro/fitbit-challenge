@@ -1,0 +1,14 @@
+<table id="individual-leaderboard-table" class="table table-condensed table-bordered table-striped" style="text-align:right;">
+    <thead>
+    <th>Name</th>
+    <th>Steps Today</th>
+    </thead>
+    <tbody>
+    <% _.each(data, function (user) { %>
+    <tr>
+        <td><%= user.displayName %></td>
+        <td><%= user.steps.toLocaleString() %></td>
+    </tr>
+    <% }); %>
+    </tbody>
+</table>

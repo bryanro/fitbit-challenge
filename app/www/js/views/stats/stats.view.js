@@ -12,8 +12,9 @@ define([
     'collections/teams.collection',
     'text!./stats.html',
     'text!./stats-table.html',
-    'text!./team-rank-table.html'
-], function ($, _, Backbone, moment, Flot, FlotTime, FlotTooltip, FlotOrderBars, TableSorter, ActivityLogCollection, TeamCollection, StatsTemplate, StatsTableTemplate, TeamRankTableTemplate) {
+    'text!./team-rank-table.html',
+    'text!./individual-leaderboard-table.html'
+], function ($, _, Backbone, moment, Flot, FlotTime, FlotTooltip, FlotOrderBars, TableSorter, ActivityLogCollection, TeamCollection, StatsTemplate, StatsTableTemplate, TeamRankTableTemplate, IndividualLeaderboardTableTemplate) {
 
     var UserView = Backbone.View.extend({
 
@@ -31,6 +32,7 @@ define([
                             that.createTeamRankingGraph();
                             that.createTeamProgressionGraph();
                             that.createIndividualStatsTable();
+                            that.createDailyLeaderboardTable();
                         },
                         error: function (model, xhr, options) {
                         }
@@ -52,6 +54,40 @@ define([
         },
 
         events: {
+        },
+
+        createDailyLeaderboardTable: function () {
+            var that = this;
+            var data = [];
+            _.each(this.activityLogCollection.models, function (activityLogItem) {
+                var activityData = activityLogItem.get('activityData');
+                data.push({ displayName: activityLogItem.get('user').displayName, steps: activityData[activityData.length - 1].steps });
+            });
+
+            this.individualLeaderboardTableTemplate = _.template(IndividualLeaderboardTableTemplate);
+            $('#individual-leaderboard').html(this.individualLeaderboardTableTemplate({
+                data: data
+            }));
+
+            $('#individual-leaderboard-table').tablesorter({
+                sortList: [[1,1]],
+                sortInitialOrder: 'desc',
+                textExtraction: function(node) {
+                    // extract data from markup and return it
+                    // need this workaround because tablesorter not handling the commas of numbers properly (e.g. 1,000)
+                    var cellText = node.innerHTML;
+                    if (cellText.length > 3) {
+                        // if cell length is more than 3 characters, check if the last 3 characters are a number
+                        //  if not a number return the cellText unmodified
+                        //  if a number return the cellText without any commas
+                        var cellTextLast3Char = cellText.substring(cellText.length - 3);
+                        return isNaN(cellText.substring(cellText.length - 3)) ? cellText : cellText.replace(/[^\d\.\-\ ]/g, '');
+                    }
+                    else {
+                        return cellText
+                    }
+                }
+            });
         },
 
         createIndividualStatsTable: function () {

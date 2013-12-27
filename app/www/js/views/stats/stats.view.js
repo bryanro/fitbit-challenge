@@ -33,6 +33,7 @@ define([
                             that.createTeamProgressionGraph();
                             that.createIndividualStatsTable();
                             that.createDailyLeaderboardTable();
+                            that.updateLastUpdateTime();
                         },
                         error: function (model, xhr, options) {
                         }
@@ -54,6 +55,16 @@ define([
         },
 
         events: {
+        },
+
+        updateLastUpdateTime: function () {
+            $.ajax({
+                type: "GET",
+                url: "/last-update",
+                success: function (model, result, options) {
+                    $('#last-update').html('<span title="' + moment(model.lastUpdateTime).format("M/D/YY h:mm a") + '">' + moment(model.lastUpdateTime).fromNow() + '</span>');
+                }
+            });
         },
 
         createDailyLeaderboardTable: function () {

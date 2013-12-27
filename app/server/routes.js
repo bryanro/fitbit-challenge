@@ -54,5 +54,8 @@ module.exports = function (app) {
         })
     });*/
 
+    var lastUpdate = require('./controllers/lastupdate');
+    app.get('/last-update', lastUpdate.getLastUpdateTime);
+
     logger.info('Finished setting up routes', 'routes.js');
 }

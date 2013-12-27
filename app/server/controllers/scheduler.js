@@ -3,6 +3,7 @@ var Config = require('../controllers/config');
 var _ = require('underscore');
 var moment = require('moment');
 var UserController = require('../controllers/user');
+var LastUpdateController = require('../controllers/lastupdate');
 var FitbitController = require('../controllers/fitbit');
 
 var Scheduler = {};
@@ -26,6 +27,9 @@ Scheduler.setupSchedule = function () {
 
         logger.info('Setting schedule to the following cronDateTime: ' + cronDateTime, 'setupScheduler');
         var updateActivityData = new cronJob(cronDateTime, Scheduler.updateActivityData, null, true, 'America/New_York');
+
+        // when app starts up, wait 10 seconds then update the activity data
+        setTimeout(Scheduler.updateActivityData, 10000);
     });
 }
 
@@ -48,6 +52,8 @@ Scheduler.updateActivityData = function () {
                     }
                 });
             });
+
+            LastUpdateController.setLastUpdateTime();
         }
     });
 }

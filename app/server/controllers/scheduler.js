@@ -34,8 +34,7 @@ Scheduler.updateActivityData = function () {
 
     UserController.getAllFitbitUsers(function (err, users) {
         if (err) {
-            logger.error('Unable to get all users, so not processing emails for anyone', 'updateActivityData');
-            return;
+            logger.error('Unable to get all users, so not updating activity data', 'updateActivityData');
         }
         else {
             logger.debug('Iterating through ' + users.length + ' users', 'updateActivityData');
@@ -51,7 +50,6 @@ Scheduler.updateActivityData = function () {
             });
         }
     });
-
 }
 
 Scheduler.setupSchedule();

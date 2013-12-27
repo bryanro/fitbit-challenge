@@ -73,7 +73,22 @@ define([
 
             $('#daily-stats-table').tablesorter({
                 sortList: [[that.activityLogCollection.at(0).get('activityData').length,1]],
-                sortInitialOrder: 'desc'
+                sortInitialOrder: 'desc',
+                textExtraction: function(node) {
+                    // extract data from markup and return it
+                    // need this workaround because tablesorter not handling the commas of numbers properly (e.g. 1,000)
+                    var cellText = node.innerHTML;
+                    if (cellText.length > 3) {
+                        // if cell length is more than 3 characters, check if the last 3 characters are a number
+                        //  if not a number return the cellText unmodified
+                        //  if a number return the cellText without any commas
+                        var cellTextLast3Char = cellText.substring(cellText.length - 3);
+                        return isNaN(cellText.substring(cellText.length - 3)) ? cellText : cellText.replace(/[^\d\.\-\ ]/g, '');
+                    }
+                    else {
+                        return cellText
+                    }
+                }
             });
         },
 

@@ -48,11 +48,11 @@ module.exports = function (app) {
 
     // User
     var user = require('./controllers/user');
-    app.get('/users', function (req,res) {
+    /*app.get('/users', function (req,res) {
         user.getAllFitbitUsers(function (err, users) {
             res.send(200, JSON.stringify(users, null, '\t'));
         })
-    });
+    });*/
 
     var lastUpdate = require('./controllers/lastupdate');
     app.get('/last-update', lastUpdate.getLastUpdateTime);

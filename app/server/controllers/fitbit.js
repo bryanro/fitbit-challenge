@@ -78,11 +78,13 @@ FitbitController.authenticate = function (req, res) {
     FitbitController.oAuth.getOAuthRequestToken(function (err, oauthToken, oauthTokenSecret, results) {
         if (err) {
             res.send(500, 'Error getting OAuth request token : ' + error);
+            return;
         } else {
             logger.debug('Successfully retrieved oauthToken (' + oauthToken + ') and oauthTokenSecret (' + oauthTokenSecret + ')', 'fitbit.authenticate');
             req.session.oauthRequestToken = oauthToken;
             req.session.oauthRequestTokenSecret = oauthTokenSecret;
-            res.redirect("http://www.fitbit.com/oauth/authorize?oauth_token=" + req.session.oauthRequestToken, 'authenticate');
+            res.redirect("https://www.fitbit.com/oauth/authorize?oauth_token=" + req.session.oauthRequestToken, 'authenticate');
+            return;
         }
     });
 }

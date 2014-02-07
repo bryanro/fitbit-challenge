@@ -12,7 +12,8 @@
         flottime: 'lib/flot/jquery.flot.time',
         flottooltip: 'lib/flot/jquery.flot.tooltip',
         flotorderbars: 'lib/flot/jquery.flot.orderbars',
-        tablesorter: 'lib/tablesorter/jquery.tablesorter.min'
+        tablesorter: 'lib/tablesorter/jquery.tablesorter.min',
+        table2csv: 'lib/table2csv/table2csv'
     },
     shim: {
         underscore: {

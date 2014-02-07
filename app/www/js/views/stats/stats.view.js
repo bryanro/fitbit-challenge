@@ -8,13 +8,15 @@ define([
     'flottooltip',
     'flotorderbars',
     'tablesorter',
+    'table2csv',
     'collections/activitylogs.collection',
     'collections/teams.collection',
     'text!./stats.html',
     'text!./stats-table.html',
     'text!./team-rank-table.html',
-    'text!./individual-leaderboard-table.html'
-], function ($, _, Backbone, moment, Flot, FlotTime, FlotTooltip, FlotOrderBars, TableSorter, ActivityLogCollection, TeamCollection, StatsTemplate, StatsTableTemplate, TeamRankTableTemplate, IndividualLeaderboardTableTemplate) {
+    'text!./individual-leaderboard-table.html',
+    'text!./individual-totals-table.html'
+], function ($, _, Backbone, moment, Flot, FlotTime, FlotTooltip, FlotOrderBars, TableSorter, Table2Csv, ActivityLogCollection, TeamCollection, StatsTemplate, StatsTableTemplate, TeamRankTableTemplate, IndividualLeaderboardTableTemplate, IndividualTotalsTableTemplate) {
 
     var UserView = Backbone.View.extend({
 
@@ -28,6 +30,7 @@ define([
                 success: function (model, result, options) {
                     that.activityLogCollection.fetch({
                         success: function (model, result, options) {
+                            that.createIndividualTotalsGraph();
                             that.createIndividualStatsGraph();
                             that.createTeamRankingGraph();
                             that.createTeamProgressionGraph();
@@ -55,6 +58,65 @@ define([
         },
 
         events: {
+            "click #download-daily-stats": "downloadDailyStats"
+        },
+
+        createIndividualTotalsGraph: function() {
+            var that = this;
+            var data = [];
+
+            var i = 0;
+            _.each(this.activityLogCollection.models, function (activityLogItem) {
+                var activityData = activityLogItem.get('activityData');
+                var totalSteps = 0;
+                _.each(activityData, function (activityDataItem) {
+                    totalSteps += activityDataItem.steps;
+                });
+                data.push({ label: activityLogItem.get('user').displayName, data: [[1, totalSteps]], bars: { order: i++ }});
+            });
+
+            data = _.sortBy(data, function (item){
+                return 1 - item.data[0][1];
+            });
+
+            for (i = 0; i < data.length; i++) {
+                data[i].bars.order = i;
+            }
+
+            $.plot($("#individual-totals"), data,
+                {
+                    series: {
+                        bars: {
+                            show: true
+                        }
+                    },
+                    xaxis: {
+                        autoscaleMargin: 0.1,
+                        show: false
+                    },
+                    yaxis: {
+                    },
+                    grid: {
+                        hoverable: true
+                    },
+                    tooltip: true,
+                    tooltipOpts: {
+                        content: "%s: %y steps"
+                    },
+                    legend: {
+                        position: "nw",
+                        container: '#individual-totals-legend'
+                    }
+                }
+            );
+
+            that.createIndividualTotalsTable(data);
+        },
+
+        downloadDailyStats: function () {
+            var $table = $('table#daily-stats-table');
+            var csv = $table.table2CSV({delivery:'value'});
+            window.location.href = 'data:text/csv;charset=UTF-8,' + encodeURIComponent(csv);
         },
 
         updateLastUpdateTime: function () {
@@ -137,6 +199,15 @@ define([
                     }
                 }
             });
+
+            // hide columns older than one week in the past
+            var headerCols = $('#daily-stats-table thead th.header');
+            console.log("SIZE: " + headerCols.size());
+            for (var i = 2; i < headerCols.size() - 7; i++)
+            {
+                $('#daily-stats-table th.header:nth-child(' + i + ')').hide();
+                $('#daily-stats-table td:nth-child(' + i + ')').hide();
+            }
         },
 
         createTeamStatsTable: function (data) {
@@ -344,6 +415,21 @@ define([
                 }
             };
             $.plot($("#individual-stats"), data, plotOptions);
+        },
+
+        createIndividualTotalsTable: function (data) {
+            var that = this;
+            var $individualTotals = $('#individual-totals-tbl');
+
+            this.individualTotalsTableTemplate = _.template(IndividualTotalsTableTemplate);
+            $individualTotals.html(this.individualTotalsTableTemplate({
+                data: data
+            }));
+
+            // set table to be a sortable table and sort by second column (number of steps) descending
+            $('#individual-totals-table').tablesorter({
+                sortList: [[1,1]]
+            });
         }
     });
 

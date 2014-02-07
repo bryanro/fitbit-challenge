@@ -38,6 +38,9 @@
         flotorderbars: {
             deps: ['flot']
         },
+        table2csv: {
+            deps: ['jquery']
+        }
     }
 });
 
